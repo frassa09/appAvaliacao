@@ -1,13 +1,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-web';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Inicial from './telas/inicial';
-import { requestFormReset } from 'react-dom';
 
 export default function App() {
 
-  const [tela, setTela] = useState('inicial')
+  const [tela, setTela] = useState('')
 
   const escolherTela = (telaEscolhida) => {
     setTela(telaEscolhida)
@@ -17,10 +16,8 @@ export default function App() {
     case 'inicial': {
       return <Inicial escolherTela={escolherTela}></Inicial>
     }
-  }
-
-
-  return (
+    default:
+      return (
     <SafeAreaView style={styles.container}>
 
       <View>
@@ -40,7 +37,8 @@ export default function App() {
 
     </SafeAreaView>
   );
-}
+    }
+  }
 
 const styles = StyleSheet.create({
   container: {
