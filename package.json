@@ -2,6 +2,7 @@
   "name": "appavaliacao",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -10,7 +11,10 @@
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
+    "@google/generative-ai": "^0.24.1",
+    "dotenv": "^17.2.2",
     "expo": "~54.0.7",
+    "expo-file-system": "~19.0.15",
     "expo-status-bar": "~3.0.8",
     "react": "19.1.0",
     "react-dom": "19.1.0",

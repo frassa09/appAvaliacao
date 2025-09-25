@@ -2,17 +2,21 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import CriarReceita from './telas/criar_receita';
 import Inicial from './telas/inicial';
 
 export default function App() {
 
-  const [tela, setTela] = useState('')
+  const [tela, setTela] = useState('criar_receita')
 
   const escolherTela = (telaEscolhida) => {
     setTela(telaEscolhida)
   }
 
   switch(tela){
+    case 'criar_receita': {
+      return <CriarReceita escolherTela={escolherTela}></CriarReceita>
+    }
     case 'inicial': {
       return <Inicial escolherTela={escolherTela}></Inicial>
     }
@@ -26,9 +30,14 @@ export default function App() {
         </Text>
 
 
+        <TouchableOpacity onPress={() => escolherTela('criar_receita')} style={styles.botao}>
+          <Text>
+            Criar Receita
+          </Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => escolherTela('inicial')} style={styles.botao}>
           <Text>
-            Tela inicial
+            Inicial
           </Text>
         </TouchableOpacity>
       </View>
