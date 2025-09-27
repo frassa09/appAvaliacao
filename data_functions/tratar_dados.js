@@ -38,7 +38,8 @@ export async function resgatarDados(dirPath, path){
 
     }
     catch(e){
-        console.log(`Erro ao resgatar dados: ${e}`)
+        console.log(`Erro ao resgatar dados, retornando array: ${e}`)
+        return []
     }
 }
 
@@ -48,7 +49,7 @@ export async function guardarDados(dirPath, path, info){
 
     await assegurarExistencia(dirPath)
 
-    console.log(`Dados a serem armazenados: ${info}`)
+    console.log(`Dados a serem armazenados: ${JSON.stringify(info)}`)
 
 
     try{
@@ -59,11 +60,28 @@ export async function guardarDados(dirPath, path, info){
 
         await FileSystem.writeAsStringAsync(path, JSON.stringify(data))
 
-        return `Dados armazenados: ${data}`
+        return `Dados armazenados: ${JSON.stringify(data)}`
     }
     catch(e){
         console.log(`Erro ao guardar informações: ${e}`)
     }
 
 
+}
+
+export async function deletarTodosDados(dirPath, path){
+
+    assegurarExistencia(dirPath)
+
+    try{
+
+        await FileSystem.writeAsStringAsync(path, JSON.stringify([]))
+
+        const dados = await FileSystem.readAsStringAsync(path)
+
+        console.log(`Dados apagados: ${JSON.stringify(dados)}`)
+    }
+    catch(e){
+        console.log(`Erro ao apagar dados: ${e}`)
+    }
 }

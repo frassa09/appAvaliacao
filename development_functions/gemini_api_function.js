@@ -1,23 +1,13 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-import dotenv from 'dotenv'
-import path from 'path';
-import { fileURLToPath } from 'url';
-// Converte o URL do módulo para um caminho de arquivo
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-// Constrói o caminho correto para o arquivo .env
-const envPath = path.resolve(__dirname, '..', '.env');
-// Configura o dotenv com o caminho correto
-dotenv.config({ path: envPath });
+const API_KEY = process.env.EXPO_PUBLIC_API_KEY
 
-const API_KEY = process.env.API_KEY
 
 const genAI = new GoogleGenerativeAI(API_KEY)
 
 export default async function gerarReceita(comida){
 
-    const receita = 'bolo de cenoura'
+    const receita = comida
 
     const model = genAI.getGenerativeModel({model: 'gemini-2.5-flash'})
 

@@ -2,6 +2,9 @@ import { StyleSheet, Text, View, ScrollView, TextInput, TouchableOpacity } from 
 import React, { use, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Alert } from 'react-native'
+import { guardarDados } from '../data_functions/tratar_dados'
+import * as FileSystem from 'expo-file-system/legacy'
+import gerarId from '../data_functions/gerarID'
 
 export default function CriarReceita({escolherTela}) {
 
@@ -13,19 +16,35 @@ export default function CriarReceita({escolherTela}) {
     const [porcoes, setPorcoes] = useState(null)
 
 
-    const adicionarReceita = () => {
+    const adicionarReceita = async () => {
+        console.log('funcao chamada')
 
-        if(tituloReceita.trim() == '' || ingredienteArray == [] || modoPreparo.trim() == ''){
+        if(!tituloReceita || ingredienteArray.length == 0 || !modoPreparo ||
+            tituloReceita.trim() == '' || modoPreparo.trim() == ''    ){
 
             Alert.alert('Você deve preencher todos os campos obrigatórios')
+            return
         }
+
+        const ID = await gerarId(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/IDs_existentes.json`)
 
         const receita = {
             tituloReceita: tituloReceita,
             ingredientes: ingredienteArray,
             modoPreparo: modoPreparo,
             tempoPreparo: tempoPreparo ? tempoPreparo : 'Não informado',
-            porcoes: porcoes ? porcoes : 'Não informado'
+            porcoes: porcoes ? porcoes : 'Não informado',
+            id: ID
+        }
+
+        try{
+
+            const resposta = await guardarDados(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/receitas.json`, receita)
+
+            console.log(resposta)
+        }
+        catch(e){
+            console.log(`Erro ao guardar as receitas: ${e}`)
         }
 
 
@@ -38,10 +57,12 @@ export default function CriarReceita({escolherTela}) {
 
     const adicionarIngrediente = () => {
 
-        if(ingrediente.trim().length >= 0){
-            setIngredienteArray([...ingredienteArray, ingrediente])
+        if(ingrediente != null){
+            if(ingrediente.trim().length > 0){
+                setIngredienteArray([...ingredienteArray, ingrediente])
 
-            setIngrediente('')
+                setIngrediente('')
+            }
         }
         else{
             Alert.alert('Não é possível adicionar um ingrediente com o campo vazio')
@@ -73,9 +94,9 @@ export default function CriarReceita({escolherTela}) {
         <Text style={styles.desc1}>
             Título da Receita *
         </Text>
-        <TextInput style={styles.inputTituloReceita} value={tituloReceita}></TextInput>
+        <TextInput style={styles.inputTituloReceita} value={tituloReceita} onChangeText={(text) => setTituloReceita(text)}></TextInput>
 
-        <TouchableOpacity style={styles.btnAddFoto}>
+        <TouchableOpacity style={styles.btnAddFoto} onPress={() => escolherTela('default')}>
             <Text style={{color: 'white'}}>
                 Faça upload de uma imagem / Tire uma foto
             </Text>
@@ -114,27 +135,27 @@ export default function CriarReceita({escolherTela}) {
         <Text style={styles.desc3}>
             Modo de preparo *
         </Text>
-        <TextInput style={styles.inputModoDePreparo} value={modoPreparo}></TextInput>
+        <TextInput style={styles.inputModoDePreparo} value={modoPreparo} onChangeText={(text) => setModoPreparo(text)}></TextInput>
 
         <View style={styles.viewTempo_Porcoes}>
             <View style={styles.viewTempoPreparo}>
             <Text>
                 Tempo de preparo (min)
             </Text>
-            <TextInput style={styles.inputTempoPreparo} keyboardType='numeric' value={tempoPreparo}></TextInput>
+            <TextInput style={styles.inputTempoPreparo} keyboardType='numeric' value={tempoPreparo} onChangeText={(text) => setTempoPreparo(text)}></TextInput>
             </View>
 
             <View style={styles.viewPorcoes}>
             <Text>
                 Porções
             </Text>
-            <TextInput style={styles.inputPorcoes} keyboardType='numeric' value={porcoes}></TextInput>
+            <TextInput style={styles.inputPorcoes} keyboardType='numeric' value={porcoes} onChangeText={(text) => setPorcoes(text)}></TextInput>
             </View>
         </View>
 
         <View style={styles.botoesFinais}>
 
-            <TouchableOpacity style={styles.btnSalvar}>
+            <TouchableOpacity style={styles.btnSalvar} onPress={() => adicionarReceita()}>
                 <Text style={{color: 'white'}}>
                     Salvar
                 </Text>
@@ -199,7 +220,6 @@ const styles = StyleSheet.create({
         width: 400,
         borderRadius: 8,
         height: 40
-        
      },
      inputIngredientes: {
         borderWidth: 0.5,
@@ -213,7 +233,8 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         width: 400,
         borderRadius: 8,
-        height: 200
+        height: 200,
+        textAlignVertical: 'top'
      },
      inputTempoPreparo: {
         borderWidth: 0.5,

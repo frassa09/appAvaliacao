@@ -4,6 +4,9 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import CriarReceita from './telas/criar_receita';
 import Inicial from './telas/inicial';
+import CriarReceitaIa from './telas/criar_receita_ia';
+import { deletarTodosDados } from './data_functions/tratar_dados';
+import * as FileSystem from 'expo-file-system/legacy'
 
 export default function App() {
 
@@ -13,12 +16,22 @@ export default function App() {
     setTela(telaEscolhida)
   }
 
+
+  const limparTodosDados = async () => {
+
+    await deletarTodosDados(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/IDs_existentes.json`)
+    await deletarTodosDados(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/receitas.json`)
+  }
+
   switch(tela){
     case 'criar_receita': {
       return <CriarReceita escolherTela={escolherTela}></CriarReceita>
     }
     case 'inicial': {
       return <Inicial escolherTela={escolherTela}></Inicial>
+    }
+    case 'criar_receita_ia': {
+      return <CriarReceitaIa escolherTela={escolherTela}></CriarReceitaIa>
     }
     default:
       return (
@@ -38,6 +51,16 @@ export default function App() {
         <TouchableOpacity onPress={() => escolherTela('inicial')} style={styles.botao}>
           <Text>
             Inicial
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => escolherTela('criar_receita_ia')} style={styles.botao}>
+          <Text>
+            Criar Receita IA
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => limparTodosDados()} style={styles.botao}>
+          <Text>
+            Limpar dados
           </Text>
         </TouchableOpacity>
       </View>
