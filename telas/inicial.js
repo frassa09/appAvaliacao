@@ -1,13 +1,19 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { resgatarDados } from '../data_functions/tratar_dados'
 import * as FileSystem from 'expo-file-system/legacy'
+import { Button, Menu, Provider, IconButton } from 'react-native-paper'
 
 export default function Inicial({escolherTela}) {
 
     const [receitas, setReceitas] = useState([])
     const [receitasExistem, setReceitasExistem] = useState(false)
+
+    const [menuVisible, setMenuVisible] = useState(false)
+
+    const openMenu = () => setMenuVisible(true)
+    const closeMenu = () => setMenuVisible(false)
 
     useEffect(() => {
 
@@ -39,8 +45,29 @@ export default function Inicial({escolherTela}) {
 
     }, [receitas])
 
+    const escolherTipoCriacao = () => {
+
+        Alert.alert(
+            'Qual método de criação você deseja utilizar?',
+            'IA: Uma inteligência artificial cria receitas a partir de seus prompts. \nManual: Você cria suas próprias receitas.',
+            [
+                {
+                    text: 'IA',
+                    onPress: () => escolherTela('criar_receita_ia')
+                },
+                {
+                    text: 'Manual',
+                    onPress: () => escolherTela('criar_receita')
+                }
+            ],
+            {  cancelable: true }
+
+        )
+    } 
+
 
   return (
+  <Provider>
     <SafeAreaView style={styles.container}>
 
         <TouchableOpacity onPress={() => escolherTela('default')}>
@@ -51,6 +78,15 @@ export default function Inicial({escolherTela}) {
 
         <View style={styles.header}>
             <TextInput placeholder='Busque por nome da receita' style={styles.inputBuscarReceita}></TextInput>
+
+            
+            <Menu visible={menuVisible} onDismiss={() => closeMenu()} anchor={
+                <IconButton onPress={() => openMenu()} icon={'dots-vertical'}></IconButton>
+            }>
+            <Menu.Item title={'Limpar dados do aplicativo'} onPress={() => closeMenu()}></Menu.Item>
+            </Menu>
+
+
         </View>
 
         <ScrollView style={styles.content}>
@@ -68,7 +104,7 @@ export default function Inicial({escolherTela}) {
 
                         return(
                         <TouchableOpacity key={index} style={styles.btnReceitas}>
-                            <Text>
+                            <Text style={{fontSize: 15, textAlign: 'center'}}>
                                 {receita.tituloReceita}
                             </Text>
                         </TouchableOpacity>
@@ -77,8 +113,16 @@ export default function Inicial({escolherTela}) {
 
 
             </View>
+
+            
+            
         </ScrollView>
+        
+        <TouchableOpacity style={styles.btnAddReceitas} onPress={() => escolherTipoCriacao()}>
+                <Image source={require('../imgs/mais.png')} resizeMode='contain' style={{height: 45, alignSelf: 'center'}}></Image>
+        </TouchableOpacity>
     </SafeAreaView>
+    </Provider>
   )
 }
 
@@ -86,16 +130,21 @@ const styles = StyleSheet.create({
 
     inputBuscarReceita: {
         borderWidth: 0.5,
-        alignSelf: 'center',
-        width: 350,
+        flex: 1,
         borderRadius: 8,
         height: 40,
-        marginBottom: 20
+        marginBottom: 20,
+        marginRight: 10,
+        paddingHorizontal: 10
     },
     header: {
         borderBottomColor: 'grey',
         borderBottomWidth: 0.5,
-        marginTop: 15
+        marginTop: 15,
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 10,
+        marginBottom: 10
     },
     desativado: {
         display: 'none'
@@ -109,7 +158,8 @@ const styles = StyleSheet.create({
         flex: 1
     },
     container: {
-        flex: 1
+        flex: 1,
+        backgroundColor: '#fffff3'
     },
     btnReceitas: {
         margin: 10,
@@ -121,7 +171,8 @@ const styles = StyleSheet.create({
         height: 190,
         borderRadius: 10,
         borderColor: 'red',
-        borderWidth: 0.8
+        borderWidth: 0.8,
+        elevation: 30
     },
     receitas: {
         flexDirection: 'row',
@@ -130,5 +181,17 @@ const styles = StyleSheet.create({
         marginLeft: 25,
         marginRight: 15,
         marginTop: 20
+    },
+    btnAddReceitas: {
+        backgroundColor: '#a6b985',
+        borderRadius: 500,
+        width: 70,
+        height: 70,
+        justifyContent: 'center',
+        alignSelf: 'flex-end',
+        margin: 30,
+        position: 'absolute',
+        marginTop: 800,
+        elevation: 30
     }
 })

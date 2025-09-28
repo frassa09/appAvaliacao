@@ -38,9 +38,7 @@ export default function CriarReceita({escolherTela}) {
         }
 
         try{
-
             const resposta = await guardarDados(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/receitas.json`, receita)
-
             console.log(resposta)
         }
         catch(e){
@@ -161,7 +159,7 @@ export default function CriarReceita({escolherTela}) {
                 </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.btnCancel}>
+            <TouchableOpacity style={styles.btnCancel} onPress={() => escolherTela('inicial')}>
                 <Text>
                     Cancelar
                 </Text>
