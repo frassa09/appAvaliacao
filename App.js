@@ -10,15 +10,14 @@ import * as FileSystem from 'expo-file-system/legacy'
 
 export default function App() {
 
-  const [tela, setTela] = useState('criar_receita')
+  const [tela, setTela] = useState('inicial')
 
   const escolherTela = (telaEscolhida) => {
     setTela(telaEscolhida)
   }
 
 
-  const limparTodosDados = async () => {
-
+   const limparTodosDados = async () => {
     await deletarTodosDados(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/IDs_existentes.json`)
     await deletarTodosDados(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/receitas.json`)
   }

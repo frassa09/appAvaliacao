@@ -1,19 +1,47 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { resgatarDados } from '../data_functions/tratar_dados'
+import { resgatarDados, deletarTodosDados } from '../data_functions/tratar_dados'
 import * as FileSystem from 'expo-file-system/legacy'
-import { Button, Menu, Provider, IconButton } from 'react-native-paper'
+import { Provider, IconButton, Modal } from 'react-native-paper'
+import { Dropdown } from 'react-native-element-dropdown'
+import useBuscaFuse from '../data_functions/busca_fuse'
 
 export default function Inicial({escolherTela}) {
 
     const [receitas, setReceitas] = useState([])
-    const [receitasExistem, setReceitasExistem] = useState(false)
 
-    const [menuVisible, setMenuVisible] = useState(false)
+    const {resultado, setTermoBusca} = useBuscaFuse(receitas)
 
-    const openMenu = () => setMenuVisible(true)
-    const closeMenu = () => setMenuVisible(false)
+
+    const [modalVisivel, setModalVisivel] = useState(false)
+    const [receitaEscolhida, setReceitaEscolhida] = useState(null)
+
+    const receitasExistem = Array.isArray(resultado) && resultado.length > 0
+
+
+    const limparTodosDados = async () => {
+        console.log('funcao de apagar dados')
+
+        await deletarTodosDados(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/IDs_existentes.json`)
+        await deletarTodosDados(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/receitas.json`)
+
+        setReceitas([])
+
+        Alert.alert('Todos os dados foram apagados com sucesso!')
+      }
+
+    const abrirReceita = (receita) => {
+
+        setReceitaEscolhida(receita)
+        setModalVisivel(true)
+
+        console.log('receita chamada')
+    }
+
+    const fecharReceita = () => {
+        setModalVisivel(false)
+    }
 
     useEffect(() => {
 
@@ -21,7 +49,6 @@ export default function Inicial({escolherTela}) {
 
             try{
                 const data = await resgatarDados(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/receitas.json`)
-
                 console.log(`Dados resgatados: ${JSON.stringify(data)}`)
                 setReceitas(data)
             }
@@ -33,17 +60,7 @@ export default function Inicial({escolherTela}) {
         resgatarReceitas()
     }, [])
 
-    useEffect(() => {
-
-        if(Array.isArray(receitas) && receitas.length > 0){
-            setReceitasExistem(true)
-        }
-        else{
-            setReceitasExistem(false)
-        }
-
-
-    }, [receitas])
+    
 
     const escolherTipoCriacao = () => {
 
@@ -65,28 +82,38 @@ export default function Inicial({escolherTela}) {
         )
     } 
 
+    const abrirOpcoes = () => {
+
+        Alert.alert(
+            'Opções',
+            'Opções do aplicativo',
+            [
+                {
+                    text: 'Apagar todos os dados',
+                    onPress: () => limparTodosDados()
+                }
+            ],
+            {cancelable: true}
+        )
+    }
+
 
   return (
   <Provider>
     <SafeAreaView style={styles.container}>
 
-        <TouchableOpacity onPress={() => escolherTela('default')}>
+        <TouchableOpacity onPress={() => escolherTela('default')} style={styles.desativado}>
             <Text>
                 Matriz
             </Text>
         </TouchableOpacity>
 
         <View style={styles.header}>
-            <TextInput placeholder='Busque por nome da receita' style={styles.inputBuscarReceita}></TextInput>
+            <TextInput placeholder='Busque por nome da receita' style={styles.inputBuscarReceita} onChangeText={(text) => setTermoBusca(text)}></TextInput>
 
-            
-            <Menu visible={menuVisible} onDismiss={() => closeMenu()} anchor={
-                <IconButton onPress={() => openMenu()} icon={'dots-vertical'}></IconButton>
-            }>
-            <Menu.Item title={'Limpar dados do aplicativo'} onPress={() => closeMenu()}></Menu.Item>
-            </Menu>
-
-
+            <TouchableOpacity onPress={() => abrirOpcoes()}>
+                <Image source={require('../imgs/tres_pontos.png')} resizeMode='contain' style={{height: 20, width: 20, marginBottom: 20}}></Image>
+            </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content}>
@@ -100,10 +127,10 @@ export default function Inicial({escolherTela}) {
 
             <View style={[receitasExistem ? styles.receitas : styles.desativado]}>
 
-                {receitas.map((receita, index) => {
+                {resultado?.map((receita, index) => {
 
                         return(
-                        <TouchableOpacity key={index} style={styles.btnReceitas}>
+                        <TouchableOpacity key={index} style={styles.btnReceitas} onPress={() => abrirReceita(receita)}>
                             <Text style={{fontSize: 15, textAlign: 'center'}}>
                                 {receita.tituloReceita}
                             </Text>
@@ -121,7 +148,49 @@ export default function Inicial({escolherTela}) {
         <TouchableOpacity style={styles.btnAddReceitas} onPress={() => escolherTipoCriacao()}>
                 <Image source={require('../imgs/mais.png')} resizeMode='contain' style={{height: 45, alignSelf: 'center'}}></Image>
         </TouchableOpacity>
+        
+        
+        <Modal animationType={'slide'} onDismiss={() => fecharReceita()} visible={modalVisivel} >
+
+        <ScrollView style={styles.containerReceita}>
+
+            <Text style={styles.tituloReceita}>
+                {receitaEscolhida ? receitaEscolhida.tituloReceita : 'Carregando...'}
+            </Text>
+
+            <Text style={styles.modoPreparo}>
+
+                {receitaEscolhida ? receitaEscolhida.modoPreparo : 'Não carregado'}
+            </Text>
+
+            <Text style={styles.tituloIngredientes}>
+                Ingredientes
+            </Text>
+
+            <View style={styles.ingredientes}>
+
+                {receitaEscolhida ? receitaEscolhida.ingredientes.map((ingrediente, index) => {
+                    return <Text key={index}>{ingrediente}</Text>
+                }) : 'Não carregado'}
+            </View>
+
+            <View style={styles.infoAdicionais}>
+
+                <Text>
+                    Tempo de preparo: {receitaEscolhida ? receitaEscolhida.tempoPreparo : 'Não carregado'}
+                </Text>
+                <Text>
+                    Porções: {receitaEscolhida ? receitaEscolhida.porcoes : 'Não carregado'}
+                </Text>
+            </View>
+
+        </ScrollView>
+
+        </Modal>
     </SafeAreaView>
+
+
+    
     </Provider>
   )
 }
@@ -144,7 +213,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 10,
-        marginBottom: 10
+        marginBottom: 10,
+        zIndex: 10
     },
     desativado: {
         display: 'none'
@@ -164,13 +234,13 @@ const styles = StyleSheet.create({
     btnReceitas: {
         margin: 10,
         marginBottom: 20,
-        backgroundColor: 'pink',
+        backgroundColor: '#a6b985',
         alignItems: 'center',
         justifyContent: 'center',
         width: 170,
         height: 190,
         borderRadius: 10,
-        borderColor: 'red',
+        borderColor: '#47793b',
         borderWidth: 0.8,
         elevation: 30
     },
@@ -193,5 +263,34 @@ const styles = StyleSheet.create({
         position: 'absolute',
         marginTop: 800,
         elevation: 30
-    }
+    },
+    containerReceita: {
+        backgroundColor: '#a7de96',
+        marginRight: 35,
+        marginLeft: 35,
+        height: 600,
+        borderRadius: 12
+    },
+    tituloReceita: {
+        marginLeft: 30,
+        marginTop: 30,
+        fontSize: 25
+    },
+    modoPreparo: {
+        margin: 30,
+        marginBottom: 40
+    },
+    tituloIngredientes: {
+        marginLeft: 30,
+        marginTop: 30,
+        fontSize: 25
+    },
+    ingredientes: {
+        margin: 30,
+        marginBottom: 40
+    },
+    infoAdicionais: {
+        margin: 30,
+        justifyContent: 'space-between',
+    },
 })

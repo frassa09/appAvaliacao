@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView, TextInput, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView } from 'react-native'
 import React, { use, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Alert } from 'react-native'
@@ -40,12 +40,11 @@ export default function CriarReceita({escolherTela}) {
         try{
             const resposta = await guardarDados(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/receitas.json`, receita)
             console.log(resposta)
+            Alert.alert('Receita guardada com sucesso!')
         }
         catch(e){
             console.log(`Erro ao guardar as receitas: ${e}`)
         }
-
-
     }
 
 
@@ -87,6 +86,7 @@ export default function CriarReceita({escolherTela}) {
         </Text>
     </View>
 
+    <KeyboardAvoidingView behavior='padding' style={{flex: 1}}>
     <ScrollView style={styles.content}>
 
         <Text style={styles.desc1}>
@@ -160,14 +160,15 @@ export default function CriarReceita({escolherTela}) {
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.btnCancel} onPress={() => escolherTela('inicial')}>
-                <Text>
-                    Cancelar
+                <Text style={{textAlign: 'center'}}>
+                    Voltar para tela inicial
                 </Text>
             </TouchableOpacity>
         </View>
 
 
     </ScrollView>
+    </KeyboardAvoidingView>
 
     <View style={styles.footer}>
 

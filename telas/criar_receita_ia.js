@@ -21,12 +21,13 @@ export default function CriarReceitaIa({escolherTela}) {
         setReceitaFoiGerada(false)
 
         setEstadoReceita('Carregando...')
-        setGravarPromptReceita(promptReceita)
+
+        const promptAtual = promptReceita
         setPromptReceita('')
 
+        setGravarPromptReceita(promptReceita)
 
-
-        const respostaReceita = await gerarReceita(gravarPromptReceita)
+        const respostaReceita = await gerarReceita(promptAtual)
 
         if(respostaReceita[1][0] == 'naogerado'){
             Alert.alert('Você digitou algo que não pôde ser criado')
