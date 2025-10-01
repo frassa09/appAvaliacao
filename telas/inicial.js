@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Image, Alert } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, Image, Alert, KeyboardAvoidingView } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { resgatarDados, deletarTodosDados } from '../data_functions/tratar_dados'
@@ -6,10 +6,14 @@ import * as FileSystem from 'expo-file-system/legacy'
 import { Provider, IconButton, Modal } from 'react-native-paper'
 import { Dropdown } from 'react-native-element-dropdown'
 import useBuscaFuse from '../data_functions/busca_fuse'
+import { deletarReceita } from '../data_functions/tratar_dados'
 
 export default function Inicial({escolherTela}) {
+    
+    const [modoEdicao, setModoEdicao] = useState(false)
 
     const [receitas, setReceitas] = useState([])
+    const [receitaSendoDeletada, setReceitaSendoDeletada] = useState(false)
 
     const {resultado, setTermoBusca} = useBuscaFuse(receitas)
 
@@ -58,7 +62,7 @@ export default function Inicial({escolherTela}) {
         }
 
         resgatarReceitas()
-    }, [])
+    }, [receitaSendoDeletada])
 
     
 
@@ -96,6 +100,32 @@ export default function Inicial({escolherTela}) {
             {cancelable: true}
         )
     }
+
+    const confirmDeletarReceita = (idReceita) => {
+
+        setReceitaSendoDeletada(true)
+        Alert.alert(
+            'Você tem certeza de quer deletar essa receita?',
+            'Esse processo é irreversível',
+            [
+                {
+                    text: 'Sim, eu quero deletar a receita',
+                    onPress: async () => {
+                        const response = await deletarReceita(`${FileSystem.documentDirectory}data`, `${FileSystem.documentDirectory}data/receitas.json`, idReceita)
+                        setReceitaSendoDeletada(false)
+                        Alert.alert(response)
+                        setModalVisivel(false)
+                    }
+                },
+                {
+                    text: 'Voltar',
+                    onPress: () => setReceitaSendoDeletada(false)
+                }
+            ],
+            { cancelable: true }
+        )
+    }
+
 
 
   return (
@@ -152,7 +182,7 @@ export default function Inicial({escolherTela}) {
         
         <Modal animationType={'slide'} onDismiss={() => fecharReceita()} visible={modalVisivel} >
 
-        <ScrollView style={styles.containerReceita}>
+        <ScrollView style={[modoEdicao ? styles.desativado : styles.containerReceita]}>
 
             <Text style={styles.tituloReceita}>
                 {receitaEscolhida ? receitaEscolhida.tituloReceita : 'Carregando...'}
@@ -184,7 +214,52 @@ export default function Inicial({escolherTela}) {
                 </Text>
             </View>
 
+
+            <View style={styles.botoesReceita}>
+
+                <TouchableOpacity  style={styles.btnEditReceita} onPress={() => setModoEdicao(true)}>
+                    <Text style={{color: 'black'}} >
+                        Editar receita
+                    </Text>
+                </TouchableOpacity>
+                <TouchableOpacity  style={styles.btnDelReceita} onPress={() => {receitaEscolhida ? confirmDeletarReceita(receitaEscolhida.id) : Alert.alert('Erro')}}>
+                    <Text style={{color: 'white'}}>
+                        Deletar receita
+                    </Text>
+                </TouchableOpacity>
+            </View>
+
         </ScrollView>
+
+        <KeyboardAvoidingView behavior='padding'>
+
+            <ScrollView style={[modoEdicao ? styles.containerEditText : styles.desativado]}>
+
+                <Text style={styles.descEdit}>
+                    Altere as informações da sua receita:
+                </Text>
+
+                <Text style={styles.tituloModoPreparo}>
+                    Modo de preparo
+                </Text>
+
+                <TextInput value={receitaEscolhida ? receitaEscolhida.modoPreparo : 'erro'}  multiline={true} style={styles.editModoPreparo}></TextInput>
+
+
+                <Text style={styles.tituloIngredientes}>
+                    Ingredientes
+                </Text>
+
+                {receitaEscolhida ? receitaEscolhida.ingredientes.map((ingrediente, index) => {
+                    return <TextInput key={index} value={ingrediente}></TextInput>
+                }) : 'Não carregado'}
+
+
+                
+            </ScrollView>
+            
+        </KeyboardAvoidingView>
+
 
         </Modal>
     </SafeAreaView>
@@ -293,4 +368,60 @@ const styles = StyleSheet.create({
         margin: 30,
         justifyContent: 'space-between',
     },
+    btnDelReceita: {
+        borderWidth: 1,
+        alignItems: 'center',
+        borderRadius: 8,
+        backgroundColor: 'red',
+        width: 300
+    },
+    btnEditReceita: {
+        borderWidth: 1,
+        alignItems: 'center',
+        borderRadius: 8,
+        backgroundColor: '#a9ccb9',
+        width: 300
+    },
+    botoesReceita: {
+        alignItems: 'center',
+        gap: 10,
+        marginTop: 40,
+        marginBottom: 30
+    },
+    containerEditText: {
+        backgroundColor: '#a7de96',
+        marginRight: 35,
+        marginLeft: 35,
+        height: 600,
+        borderRadius: 12
+    },
+    descEdit: {
+        margin: 30,
+        fontSize: 25,
+    },
+    tituloModoPreparo: {
+        marginLeft: 30,
+        marginTop: 30,
+        fontSize: 20,
+        marginBottom: 20
+    },
+    editModoPreparo: {
+        backgroundColor: 'white',
+        height: 500,
+        alignSelf: 'center',
+        width: 330,
+        borderWidth: 0.5,
+        borderRadius: 8,
+        marginBottom: 30
+    },
+    editIngredientes: {
+        marginTop: 20,
+        backgroundColor: 'white',
+        height: 500,
+        alignSelf: 'center',
+        width: 330,
+        borderWidth: 0.5,
+        borderRadius: 8,
+        marginBottom: 30
+    }
 })

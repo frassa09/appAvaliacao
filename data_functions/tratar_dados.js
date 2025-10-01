@@ -71,7 +71,7 @@ export async function guardarDados(dirPath, path, info){
 
 export async function deletarTodosDados(dirPath, path){
 
-    assegurarExistencia(dirPath)
+    await assegurarExistencia(dirPath)
 
     try{
 
@@ -84,4 +84,25 @@ export async function deletarTodosDados(dirPath, path){
     catch(e){
         console.log(`Erro ao apagar dados: ${e}`)
     }
+}
+
+export async function deletarReceita(dirPath, path, idReceita){
+
+    await assegurarExistencia(dirPath)
+
+    const receitas = await resgatarDados(dirPath, path)
+
+    const receitasNovas = receitas.filter(receita => receita.id != idReceita)
+
+    try{
+
+        await FileSystem.writeAsStringAsync(path, JSON.stringify(receitasNovas))
+    }
+    catch(e){
+        console.log(`Erro ao apagar receita: ${e}`)
+        return
+    }
+
+    return 'Receita deletada com sucesso'
+
 }
